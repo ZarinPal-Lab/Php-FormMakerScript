@@ -1,0 +1,35 @@
+.pagination{
+	float:left;
+}
+.pagination li{
+      float:left;
+}
+.pagination li a{
+	float:left;
+	padding:5px 10px;
+	color:#666;
+      border:1px solid #ccc;
+      margin-left:-1px;
+      text-decoration:none;
+      font:14px tahoma,geneva,sans-serif;
+}
+.pagination li a:hover{
+      background:#eee;
+}
+.pagination li:first-child a{
+	border-radius:6px 0 0 6px;
+}
+.pagination li:last-child a{
+	border-radius:0 6px 6px 0;
+}
+.pagination .page-active a{
+	background:#eee!important;
+      color:#666!important;
+      border:1px solid #ccc!important;
+}
+.pagination-info{
+      float:left;
+      width:100px;
+      margin-left:40px;
+      font:12px tahoma,geneva,sans-serif;
+}
