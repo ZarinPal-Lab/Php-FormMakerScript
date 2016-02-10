@@ -11,7 +11,7 @@ class Zarinpal extends Payment
 
 	const DESCRIPTION = 'payment'; // trans description
 
-	const MERCHANT_ID = 'ss'; // merchant id
+	const MERCHANT_ID = '28bc1b28-cc0b-11e5-8bc4-000c295eb8fc'; // merchant id
 	
 	public function gateway()
 	{
@@ -47,10 +47,10 @@ class Zarinpal extends Payment
 			$this->setFlash('danger','ورودی نامعتبر است');
 			return false;
 		}
-              if(Request::getQuery('Status') != 100) {
-			$this->setFlash('danger','پرداخت انجام نشد');
-			return false;
-		}
+             if(Request::getQuery('Status') != "OK") {
+		$this->setFlash('danger','پرداخت انجام نشد');
+		return false;
+	}
 		
 		\Framework::import(BASEPATH.'app/extensions/nusoap',true);
 
@@ -62,13 +62,13 @@ class Zarinpal extends Payment
 				'Amount' => $this->trans->transPrice
 		];
 		$result = $client->call('PaymentVerification',[$params]);
-		
+		//print_r($result);
 		// check error
 		if($error = $client->getError())
 			$this->setFlash('danger',$error);
 		else if(isset($result['Status']) and $result['Status'] == 100) {
 			// success payment
-			$this->updateTrans($result['RefId']);
+			$this->updateTrans($result['RefID']);
 			$this->setFlash('success','پرداخت با موفقیت انجام شد');
 			return true;
 		} else if(isset($result['Status']))
