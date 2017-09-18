@@ -1,5 +1,7 @@
 <?php
 namespace app\components\modules\payment;
+use framework\helpers\Html;
+use framework\database\Database;
 use app\components\modules\Payment;
 use framework\request\Request;
 
@@ -17,12 +19,20 @@ class Zarinpal extends Payment
 	{
 		\Framework::import(BASEPATH.'app/extensions/nusoap',true);
               
+	        $formName = Database::queryBuilder()
+	            ->select('formName')
+	            ->from('form')
+	            ->where('formId = :id')
+	            ->where('formStatus = 1','AND')
+	            ->getRow([':id' => $this->trans->transFormId]); 
+	        $Description=Html::escape($formName->formName);     
+              
 		$client = new \nusoap_client(self::WEB_SERVICE,'wsdl');
-              $client->soap_defencoding = 'UTF-8';
+                $client->soap_defencoding = 'UTF-8';
 		$params = [
 				'MerchantID' => self::MERCHANT_ID,
 				'Amount' => $this->trans->transPrice,
-				'Description' => self::DESCRIPTION,
+				'Description' => $Description,//self::DESCRIPTION,
 				'CallbackURL' => $this->callbackUrl
 		];
 		$result = $client->call('PaymentRequest',[$params]);
