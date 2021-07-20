@@ -26,6 +26,7 @@ if($form) {
                                                  <tr>
                                                         <td width="140"><label for="content">توضیحات</label></td><td><?php echo Html::textArea('content', $form->formContent, ['id' => 'content', 'class' => 'form-control', 'rows' => 3]);?><?php echo $model->getMessage('content');?></td>
                                                  </tr>
+                                                 
                                                  <tr>
                                                         <td width="140"><label for="price">مبلغ (تومان)<span>*</span></label></td><td><?php echo $this->priceField( $form->formPriceType, $form->formPriceValue );?><?php echo $model->getMessage('price');?></td>
                                                  </tr>

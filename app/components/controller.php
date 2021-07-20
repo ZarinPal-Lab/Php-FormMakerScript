@@ -22,7 +22,7 @@ class Controller extends BaseController
             $options = array_combine($options, $options);
             $output = Html::dropDownList('price', $options, ['id' => $id,'class' => $class]);
         } elseif($priceType == 'text') {
-            $output = Html::textField('price', ['value' => $priceValue,'id' => $id,'class' => $class]);
+            $output = Html::textField('price', ['value' => $priceValue,'id' => $id,'class' => $class,'disabled'=>'disabled']);
         }
         return $output;
     }

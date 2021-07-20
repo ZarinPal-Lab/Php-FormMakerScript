@@ -13,6 +13,14 @@ class FormController extends Controller
     {
         $formId = (!is_null($id) ? intval($id) : $this->defaultForm);
 
+        $forms = Database::queryBuilder()
+        ->select('*')
+        ->from('form')
+        ->where('formId = :id')
+        ->where('formStatus = 1','AND')
+        ->getRow([':id' => $formId]);
+        
+
         $model = new FormModel;
         
         if(Request::isPostRequest() and Csrf::validate()) {            
@@ -50,7 +58,7 @@ class FormController extends Controller
                                'transStatus' => 0
                        ];
                        $params = [
-                               ':price' => Request::getPost('price'),
+                               ':price' => $forms->formPriceValue,
                                ':gateway' => Request::getPost('gateway'),
                                ':au' => $au,
                                ':ip' => Request::getRemoteAddr(),

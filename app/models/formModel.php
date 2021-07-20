@@ -17,10 +17,10 @@ class FormModel extends Model
                     'itemValue' => Request::getPost('email'),
                     'itemMessage' => 'ایمیل نباید خالی باشد',
                 ],
-                'price' => [
-                    'itemValue' => Request::getPost('price'),
-                    'itemMessage' => 'مبلغ نباید خالی باشد',
-                ],
+                // 'price' => [
+                //     'itemValue' => Request::getPost('price'),
+                //     'itemMessage' => 'مبلغ نباید خالی باشد',
+                // ],
                 'gateway' => [
                     'itemValue' => Request::getPost('gateway'),
                     'itemMessage' => 'درگاه پرداخت را انتخاب کنید',

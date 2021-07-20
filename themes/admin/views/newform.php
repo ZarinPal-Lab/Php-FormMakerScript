@@ -40,11 +40,9 @@ $this->title .= ' - ساخت فرم جدید';
 
                <label for="formPriceType">نوع مبلغ<span>*</span></label>
                <div class="form-group">
-                     <?php echo Html::dropDownList('formPriceType',['text' => 'انتخاب کاربر','select' => 'منوی انتخابی'],['id' => 'formPriceType','class' => 'form-control']);?>
+                     <?php echo Html::dropDownList('formPriceType',['text' => 'قیمت پیشفرض'],['id' => 'formPriceType','class' => 'form-control']);?>
                </div>
                <?php echo $model->getMessage('formPriceType');?>
-
-               <div class="alert alert-info">در صورت انتخاب منوی انتخابی مبلغ را با , از هم جدا کنید</div>
 
                <label for="formPriceValue">مقدار مبلغ(تومان)<span>*</span></label>
                <div class="form-group">

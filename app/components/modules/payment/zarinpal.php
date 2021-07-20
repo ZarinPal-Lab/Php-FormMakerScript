@@ -13,11 +13,10 @@ class Zarinpal extends Payment
 
 	const DESCRIPTION = 'payment'; // trans description
 
-	const MERCHANT_ID = '28bc1b28-cc0b-11e5-8bc4-000c295eb8fc'; // merchant id
+	const MERCHANT_ID = ''; // merchant id
 	
 	public function gateway()
 	{
-		\Framework::import(BASEPATH.'app/extensions/nusoap',true);
               
 	        $formName = Database::queryBuilder()
 	            ->select('formName')
@@ -26,68 +25,83 @@ class Zarinpal extends Payment
 	            ->where('formStatus = 1','AND')
 	            ->getRow([':id' => $this->trans->transFormId]); 
 	        $Description=Html::escape($formName->formName);     
-              
-		$client = new \nusoap_client(self::WEB_SERVICE,'wsdl');
-                $client->soap_defencoding = 'UTF-8';
-		$params = [
-				'MerchantID' => self::MERCHANT_ID,
-				'Amount' => $this->trans->transPrice,
-				'Description' => $Description,//self::DESCRIPTION,
-				'CallbackURL' => $this->callbackUrl
-		];
-		$result = $client->call('PaymentRequest',[$params]);
 
-		// check error
-		if($error = $client->getError())
-			$this->setFlash('danger',$error);
-		else if(isset($result['Status'],$result['Authority']) and $result['Status'] == 100) {
-			// success request
-			$this->updateGatewayAu($result['Authority']);
-			Request::redirect(self::START_PAY.$result['Authority']);
-		} elseif(isset($result['Status']))
-			$this->errors($result['Status']);
-		else
-			$this->setFlash('danger','خطا در اتصال به درگاه زرین پال');
+ 	   $data = array("merchant_id" => self::MERCHANT_ID,
+   	 "amount" => $this->trans->transPrice * 10,
+   	 "callback_url" => $this->callbackUrl,
+   	 "description" => $Description,//self::DESCRIPTION,
+  	  );
+	$jsonData = json_encode($data);
+	$ch = curl_init('https://api.zarinpal.com/pg/v4/payment/request.json');
+	curl_setopt($ch, CURLOPT_USERAGENT, 'ZarinPal Rest Api v1');
+	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+	curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+   	 'Content-Type: application/json',
+    	'Content-Length: ' . strlen($jsonData)
+	));
+
+$result = curl_exec($ch);
+$err = curl_error($ch);
+$result = json_decode($result, true, JSON_PRETTY_PRINT);
+curl_close($ch);
+
+
+
+if ($err) {
+    echo "cURL Error #:" . $err;
+} else {
+    if (empty($result['errors'])) {
+        if ($result['data']['code'] == 100) {
+            header('Location: https://www.zarinpal.com/pg/StartPay/' . $result['data']["authority"]);
+        }
+    } else {
+         echo'Error Code: ' . $result['errors']['code'];
+         echo'message: ' .  $result['errors']['message'];
+
+    }
 	}
+}
 
 	public function callback()
 	{
-		if(Request::getQuery('Authority') != $this->trans->transGatewayAu
-              or !Request::isQuery('Status')) {
-			$this->setFlash('danger','ورودی نامعتبر است');
-			return false;
-		}
+
              if(Request::getQuery('Status') != "OK") {
 		$this->setFlash('danger','پرداخت انجام نشد');
 		return false;
 	}
-		
-		\Framework::import(BASEPATH.'app/extensions/nusoap',true);
 
-		$client = new \nusoap_client(self::WEB_SERVICE,'wsdl');
-              $client->soap_defencoding = 'UTF-8';
-		$params = [
-				'MerchantID' => self::MERCHANT_ID,
-				'Authority' => Request::getQuery('Authority'),
-				'Amount' => $this->trans->transPrice
-		];
-		$result = $client->call('PaymentVerification',[$params]);
-		//print_r($result);
-		// check error
-		if($error = $client->getError())
-			$this->setFlash('danger',$error);
-		else if(isset($result['Status']) and $result['Status'] == 100) {
-			// success payment
-			$this->updateTrans($result['RefID']);
-			$this->setFlash('success','پرداخت با موفقیت انجام شد');
-			return true;
-		} else if(isset($result['Status']))
-			$this->errors($result['Status']);
-		else
-			$this->setFlash('danger','خطا در اتصال به درگاه زرین پال');
+        $data = array("merchant_id" => self::MERCHANT_ID, "authority" => Request::getQuery('Authority'), "amount" => $this->trans->transPrice * 10);
+        $jsonData = json_encode($data);
+        $ch = curl_init('https://api.zarinpal.com/pg/v4/payment/verify.json');
+        curl_setopt($ch, CURLOPT_USERAGENT, 'ZarinPal Rest Api v4');
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($jsonData)
+        ));
 
-		return false;
-	}
+        $result = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+        $result = json_decode($result, true);
+
+        if (empty($result['data'])) {
+            $this->setFlash('danger','خطا در انجام پرداخت');
+        } else {
+            if ($result['data']['code'] == 100 || $result['data']['code'] == 101) {
+                $this->updateTrans($result['data']['ref_id']);
+			   $this->setFlash('success','پرداخت با موفقیت انجام شد');
+			   return true;
+            } else {
+                echo'code: ' . $result['errors']['code'];
+                echo'message: ' .  $result['errors']['message'];
+            }
+        }
+}
 
 	private function errors($status)
 	{
